@@ -1,0 +1,24 @@
+{
+  "name": "multi-environment-demo",
+  "version": "1.0.0",
+  "description": "Multi-environment Jenkins pipeline demo application",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "ENVIRONMENT=dev node app.js",
+    "qa": "ENVIRONMENT=qa node app.js",
+    "uat": "ENVIRONMENT=uat node app.js",
+    "prod": "ENVIRONMENT=prod node app.js"
+  },
+  "keywords": [
+    "jenkins",
+    "docker",
+    "multi-environment",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

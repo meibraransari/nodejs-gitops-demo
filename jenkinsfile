@@ -1,0 +1,181 @@
+pipeline {
+    agent { label 'sg' }
+    parameters {
+        choice(name: 'ENVIRONMENT', choices: ['dev', 'qa', 'uat', 'prod'], description: 'Select the target environment')
+    }
+    environment {
+        GIT_URL = "https://github.com/meibraransari/nodejs-demo.git"
+        DOCKER_HOST_CREDENTIALS = credentials('d482446e-e815-4122-bf2d-a68ad17567b7')
+        MY_DOCKER_HOST = 'hub.devopsinaction.lab'
+        PLATFORMS = 'linux/amd64'
+        DATE = new Date().format('d.M.YY')
+        DOCKER_IMAGE_TAG = "${DATE}.${BUILD_NUMBER}"
+        DOCKER_LATEST_TAG ="latest"
+    }
+    stages {
+        stage('Dev Build & Push of Docker Image') {
+            when {
+                allOf {
+                    expression { true }
+                    expression { params.ENVIRONMENT == 'dev' }
+                }
+            }
+            environment {
+                GIT_BRANCH = 'dev'
+                DOCKER_IMAGE = 'hub.devopsinaction.lab/dev/demo-image'
+                MY_DOCKER_IMAGE = 'hub.devopsinaction.lab/dev/demo-image'
+            }
+            steps {
+                echo "Building ${env.JOB_NAME} for ${params.ENVIRONMENT}..."
+                //git branch: "$GIT_BRANCH", credentialsId: "$GITLAB_CREDENTIALS", url: "$GIT_URL"
+                git branch: "$GIT_BRANCH", url: "$GIT_URL"
+                sh 'echo $DOCKER_HOST_CREDENTIALS_PSW | docker login -u $DOCKER_HOST_CREDENTIALS_USR --password-stdin ${MY_DOCKER_HOST}'
+                
+                sh """
+                    #echo '\$Dockerfile' > Dockerfile
+                    #echo "\$entrypoint" > entrypoint.sh
+                    sed -i -E "s|BUILD_CMD|dev|" Dockerfile
+                    
+                    TZ="Asia/Kolkata" date "+Build Time: %d-%m-%Y %H:%M:%S %Z" > build_info
+                    echo "Jenkins Build Number: ${BUILD_NUMBER}" >> build_info
+                    echo "Git Branch: ${GIT_BRANCH}" >> build_info
+
+                    
+                    docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+                    docker buildx create --name multiarch-builder --use || docker buildx use multiarch-builder
+                    docker buildx inspect --bootstrap
+        
+                    docker buildx build \
+                        --platform=${PLATFORMS} \
+                        --no-cache \
+                        --push \
+                        -t ${MY_DOCKER_IMAGE}:${DOCKER_LATEST_TAG} \
+                        -t ${MY_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG} \
+                        .
+                """
+            }
+        }
+        stage('QA Build & Push of Docker Image') {
+            when {
+                allOf {
+                    expression { true }
+                    expression { params.ENVIRONMENT == 'qa' }
+                }
+            }
+            environment {
+                GIT_BRANCH = 'qa'
+                DOCKER_IMAGE = 'hub.devopsinaction.lab/qa/demo-image'
+                MY_DOCKER_IMAGE = 'hub.devopsinaction.lab/qa/demo-image'
+            }
+            steps {
+                echo "Building ${env.JOB_NAME} for ${params.ENVIRONMENT}..."
+                //git branch: "$GIT_BRANCH", credentialsId: "$GITLAB_CREDENTIALS", url: "$GIT_URL"
+                git branch: "$GIT_BRANCH", url: "$GIT_URL"
+                sh """
+                    #echo '\$Dockerfile' > Dockerfile
+                    #echo "\$entrypoint" > entrypoint.sh
+                    sed -i -E "s|BUILD_CMD|dev|" Dockerfile
+
+                    TZ="Asia/Kolkata" date "+Build Time: %d-%m-%Y %H:%M:%S %Z" > build_info
+                    echo "Jenkins Build Number: ${BUILD_NUMBER}" >> build_info
+                    echo "Git Branch: ${GIT_BRANCH}" >> build_info
+                    
+                    docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+                    docker buildx create --name multiarch-builder --use || docker buildx use multiarch-builder
+                    docker buildx inspect --bootstrap
+        
+                    docker buildx build \
+                        --platform=${PLATFORMS} \
+                        --no-cache \
+                        --push \
+                        -t ${MY_DOCKER_IMAGE}:${DOCKER_LATEST_TAG} \
+                        -t ${MY_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG} \
+                        .
+                """
+            }
+        }
+        stage('UAT Build & Push of Docker Image') {
+            when {
+                allOf {
+                    expression { true }
+                    expression { params.ENVIRONMENT == 'uat' }
+                }
+            }
+            environment {
+                GIT_BRANCH = 'uat'
+                DOCKER_IMAGE = 'hub.devopsinaction.lab/uat/demo-image'
+                MY_DOCKER_IMAGE = 'hub.devopsinaction.lab/uat/demo-image'
+            }
+            steps {
+                echo "Building ${env.JOB_NAME} for ${params.ENVIRONMENT}..."
+                //git branch: "$GIT_BRANCH", credentialsId: "$GITLAB_CREDENTIALS", url: "$GIT_URL"
+                git branch: "$GIT_BRANCH", url: "$GIT_URL"
+                sh """
+                    #echo '\$Dockerfile' > Dockerfile
+                    #echo "\$entrypoint" > entrypoint.sh
+                    sed -i -E "s|BUILD_CMD|dev|" Dockerfile
+
+                    TZ="Asia/Kolkata" date "+Build Time: %d-%m-%Y %H:%M:%S %Z" > build_info
+                    echo "Jenkins Build Number: ${BUILD_NUMBER}" >> build_info
+                    echo "Git Branch: ${GIT_BRANCH}" >> build_info
+                    
+                    docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+                    docker buildx create --name multiarch-builder --use || docker buildx use multiarch-builder
+                    docker buildx inspect --bootstrap
+        
+                    docker buildx build \
+                        --platform=${PLATFORMS} \
+                        --no-cache \
+                        --push \
+                        -t ${MY_DOCKER_IMAGE}:${DOCKER_LATEST_TAG} \
+                        -t ${MY_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG} \
+                        .
+                """
+            }
+        }
+        stage('Prod Build & Push of Docker Image') {
+            when {
+                allOf {
+                    expression { true }
+                    expression { params.ENVIRONMENT == 'prod' }
+                }
+            }
+            environment {
+                GIT_BRANCH = 'prod'
+                DOCKER_IMAGE = 'hub.devopsinaction.lab/prod/demo-image'
+                MY_DOCKER_IMAGE = 'hub.devopsinaction.lab/prod/demo-image'
+            }
+            steps {
+                echo "Building ${env.JOB_NAME} for ${params.ENVIRONMENT}..."
+                //git branch: "$GIT_BRANCH", credentialsId: "$GITLAB_CREDENTIALS", url: "$GIT_URL"
+                git branch: "$GIT_BRANCH", url: "$GIT_URL"
+                sh """
+                    #echo '\$Dockerfile' > Dockerfile
+                    #echo "\$entrypoint" > entrypoint.sh
+                    sed -i -E "s|BUILD_CMD|dev|" Dockerfile
+
+                    TZ="Asia/Kolkata" date "+Build Time: %d-%m-%Y %H:%M:%S %Z" > build_info
+                    echo "Jenkins Build Number: ${BUILD_NUMBER}" >> build_info
+                    echo "Git Branch: ${GIT_BRANCH}" >> build_info
+                    
+                    docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+                    docker buildx create --name multiarch-builder --use || docker buildx use multiarch-builder
+                    docker buildx inspect --bootstrap
+        
+                    docker buildx build \
+                        --platform=${PLATFORMS} \
+                        --no-cache \
+                        --push \
+                        -t ${MY_DOCKER_IMAGE}:${DOCKER_LATEST_TAG} \
+                        -t ${MY_DOCKER_IMAGE}:${DOCKER_IMAGE_TAG} \
+                        .
+                """
+            }
+        }
+    }
+    post {
+         always { 
+        echo "Release finished do cleanup and send mails"
+	    }
+	}
+}
