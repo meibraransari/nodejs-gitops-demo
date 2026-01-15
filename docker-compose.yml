@@ -1,6 +1,6 @@
 services:
   project-a:
-    image: hub.devopsinaction.lab/project-a-prod:14.1.26.29
+    image: hub.devopsinaction.lab/project-a-prod:15.1.26.1
     container_name: project-a-prod
     ports:
       - "3000:3000"
