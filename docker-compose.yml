@@ -1,6 +1,6 @@
 services:
   project-a:
-    image: hub.devopsinaction.lab/project-a-prod"
+    image: "ibraransaridocker/coming-soon"
     container_name: project-a-prod
     ports:
       - "3000:3000"
